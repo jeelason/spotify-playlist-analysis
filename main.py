@@ -1,22 +1,17 @@
 import spotipy
 import pandas as pd
 from spotipy.oauth2 import SpotifyClientCredentials
-from pprint import pprint
 from dotenv import load_dotenv
 
 load_dotenv()
 
-from db import ( 
-      conn,       
+from db import (
+    conn,
     create_artist_table,
     create_album_table,
     create_track_feature_table,
     create_track_table,
 )
-
-# engine = create_engine('sqlite:///spotify.db')
-# conn = sqlite3.connect('spotify.db')
-# cursor = conn.cursor()
 
 spotify = spotipy.Spotify(auth_manager=SpotifyClientCredentials())
 
@@ -84,17 +79,16 @@ def insert_artists():
     )
 
     create_artist_table()
-
     try:
-        artists_df.to_sql("artist", conn, if_exists="append",  index=False)
+        artists_df.to_sql("artist", conn, if_exists="append", index=False)
     except:
         print("Data already exists")
     conn.commit()
     print("close successful")
 
 
-
 album_id = []
+
 
 def insert_albums():
     # album_id
@@ -119,13 +113,13 @@ def insert_albums():
         for album in albums:
             album_id.append(album["id"])
             album_name.append(album["name"])
-            external_url.append(album["external_urls"]['spotify'])
-            image_url.append(album['images'][0]['url'])
+            external_url.append(album["external_urls"]["spotify"])
+            image_url.append(album["images"][0]["url"])
             release_date.append(album["release_date"])
             total_tracks.append(album["total_tracks"])
             type.append(album["type"])
             album_uri.append(album["uri"])
-            art_id.append(album['artists'][0]['id'])
+            art_id.append(album["artists"][0]["id"])
 
     albums_dict = {
         "album_id": album_id,
@@ -151,7 +145,7 @@ def insert_albums():
             "type",
             "album_uri",
             "artist_id",
-        ]
+        ],
     )
 
     create_album_table()
@@ -161,7 +155,6 @@ def insert_albums():
         print("Data already exists")
     conn.commit()
     print("close successful")
-
 
 
 song_uri = []
@@ -184,14 +177,13 @@ def insert_album_tracks():
         for song in songs:
             track_id.append(song["id"])
             song_name.append(song["name"])
-            external_url.append(song["external_urls"]['spotify'])
+            external_url.append(song["external_urls"]["spotify"])
             duration_ms.append(song["duration_ms"])
             explicit.append(song["explicit"])
             disc_number.append(song["disc_number"])
             type.append(song["type"])
             song_uri.append(song["uri"])
-            alb_id.append(song['artists'][0]['id'])
-
+            alb_id.append(song["artists"][0]["id"])
 
     tracks_dict = {
         "track_id": track_id,
@@ -221,7 +213,6 @@ def insert_album_tracks():
     )
 
     create_track_table()
-
     try:
         tracks_df.to_sql("track", conn, index=False, if_exists="replace")
     except:
@@ -257,7 +248,6 @@ def insert_track_features():
         type.append(track[0]["type"])
         valence.append(track[0]["valence"])
         track_uri.append(track[0]["uri"])
-        
 
     features_dict = {
         "track_id": track_id,
@@ -291,7 +281,6 @@ def insert_track_features():
     )
 
     create_track_feature_table()
-
     try:
         features_df.to_sql("track_feature", conn, if_exists="append", index=False)
     except:
@@ -299,9 +288,9 @@ def insert_track_features():
 
     conn.close()
     print("close successful")
- 
 
-def main():    
+
+def main():
     insert_artists()
     insert_albums()
     insert_album_tracks()
