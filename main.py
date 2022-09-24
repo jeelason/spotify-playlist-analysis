@@ -1,23 +1,21 @@
 import spotipy
 import pandas as pd
-import sqlalchemy
 from spotipy.oauth2 import SpotifyClientCredentials
 import sqlite3
-from db import (
-    create_artist_table,
-    create_album_table,
-    create_track_feature_table,
-    create_track_table,
-)
+from pprint import pprint
+# from db import (
+#     create_artist_table,
+#     create_album_table,
+#     create_track_feature_table,
+#     create_track_table,
+# )
 
 from dotenv import load_dotenv
 
 
 load_dotenv()
 
-engine = sqlalchemy.create_engine("sqlite:///spotify.db")
 conn = sqlite3.connect("spotify.db")
-cursor = conn.cursor()
 
 spotify = spotipy.Spotify(auth_manager=SpotifyClientCredentials())
 
@@ -28,7 +26,7 @@ fav_uri = "spotify:playlist:4v7VBQWmPx6XsoOJaJosWN"
 artists_id = []
 
 
-def get_artists():
+def insert_artists():
     # artists_id
     artist_name = []
     external_url = []
@@ -84,28 +82,27 @@ def get_artists():
         ],
     )
 
-    cursor.execute(create_artist_table)
     try:
-        artists_df.to_sql("artist", engine, index=False, if_exists="append")
+        artists_df.to_sql("artist", conn, if_exists="replace",  index=False)
     except:
         print("Data already exists")
-
-    conn.close()
+    conn.commit()
     print("close successful")
+
 
 
 album_id = []
 
-
-def get_artist_albums():
+def insert_albums():
     # album_id
     album_name = []
     external_url = []
+    image_url = []
     release_date = []
     total_tracks = []
     type = []
     album_uri = []
-    # artist_id
+    art_id = []
 
     for artist in artists_id:
         results = spotify.artist_albums(
@@ -117,53 +114,56 @@ def get_artist_albums():
             albums.extend(results["items"])
 
         for album in albums:
-            album_id.append(album["uri"])
+            album_id.append(album["id"])
             album_name.append(album["name"])
             external_url.append(album["external_urls"])
+            image_url.append(album['images'][0]['url'])
             release_date.append(album["release_date"])
             total_tracks.append(album["total_tracks"])
             type.append(album["type"])
             album_uri.append(album["uri"])
+            art_id.append(album['artists'][0]['id'])
 
-    album_dict = {
+    albums_dict = {
         "album_id": album_id,
         "album_name": album_name,
         "external_url": external_url,
+        "image_url": image_url,
         "release_date": release_date,
         "total_tracks": total_tracks,
         "type": type,
         "album_uri": album_uri,
-        "artist_id": artists_id,
+        "artist_id": art_id,
     }
 
-    album_df = pd.DataFrame(
-        album_dict,
+    albums_df = pd.DataFrame(
+        albums_dict,
         columns=[
             "album_id",
             "album_name",
             "external_url",
+            "image_url",
             "release_date",
             "total_tracks",
             "type",
             "album_uri",
             "artist_id",
-        ],
+        ]
     )
-
-    # cursor.execute(create_artist_table)
+    
     try:
-        album_df.to_sql("artist", engine, index=False, if_exists="append")
+        albums_df.to_sql("album", conn, if_exists="append", index=False)
     except:
         print("Data already exists")
-
-    conn.close()
+    conn.commit()
     print("close successful")
+
 
 
 song_uri = []
 
 
-def get_album_tracks():
+def insert_album_tracks():
     track_id = []
     song_name = []
     external_url = []
@@ -214,10 +214,10 @@ def get_album_tracks():
         ],
     )
 
-    # cursor.execute(create_track_table)
+    # cursor.execute(create_track_table())
 
     try:
-        tracks_df.to_sql("track", engine, index=False, if_exists="append")
+        tracks_df.to_sql("track", conn, index=False, if_exists="append")
     except:
         print("Data already exists")
 
@@ -225,7 +225,7 @@ def get_album_tracks():
     print("close successful")
 
 
-def get_track_features():
+def insert_track_features():
     track_id = []
     danceability = []
     energy = []
@@ -293,11 +293,11 @@ def get_track_features():
     print("close successful")
 
 
-def main():
-    get_artists()
-    get_artist_albums()
-    # get_album_tracks()
-    # get_track_features()
+def main():    
+    insert_artists()
+    insert_albums()
+    # insert_album_tracks()
+    # insert_track_features()
 
 
 if __name__ == "__main__":
