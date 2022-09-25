@@ -8,7 +8,6 @@ load_dotenv()
 
 from db import (
     conn,
-    cur,
     create_artist_table,
     create_album_table,
     create_track_feature_table,
@@ -21,12 +20,11 @@ spotify = spotipy.Spotify(auth_manager=SpotifyClientCredentials())
 fav_uri = "spotify:playlist:4v7VBQWmPx6XsoOJaJosWN"
 
 
-
+artists_id = []
 
 
 def insert_artists():
-    
-    artists_id = []
+    # artists_id
     artist_name = []
     external_url = []
     genre = []
@@ -39,7 +37,7 @@ def insert_artists():
     results = spotify.playlist_tracks(fav_uri, limit=20)
 
     artists = results["items"]
-    for i in range(18,20):
+    for i in range(13,20):
         artist_id = artists[i]["track"]["artists"][0]["id"]
         artists_id.append(artist_id)
         artist_name.append(artists[i]["track"]["artists"][0]["name"])
@@ -80,6 +78,7 @@ def insert_artists():
             "artist_uri",
         ],
     )
+
     create_artist_table()
     try:
         artists_df.to_sql("artist", conn, if_exists="append", index=False)
@@ -90,19 +89,11 @@ def insert_artists():
  
 
 
-
+album_id = []
 
 
 def insert_albums():
-
-    select_qry = """
-        SELECT artist_id
-        from artist
-    """
-    cur.execute(select_qry)
-    artists_id = [item[0] for item in cur.fetchall()]
-
-    album_id = []
+    # album_id
     album_name = []
     external_url = []
     image_url = []
@@ -169,18 +160,10 @@ def insert_albums():
     
 
 
+song_uri = []
 
 
 def insert_album_tracks():
-
-    select_qry = """
-        SELECT album_id
-        from album       
-    """
-    cur.execute(select_qry)
-    album_id = [item[0] for item in cur.fetchall()]
-
-
     track_id = []
     song_name = []
     external_url = []
@@ -188,13 +171,15 @@ def insert_album_tracks():
     explicit = []
     disc_number = []
     type = []
-    song_uri = []
+    # song_uri
     alb_id = []
 
     for album in album_id:
+                
         results = spotify.album_tracks(album, market="US")
         songs = results["items"]
-        for song in songs:
+        
+        for song in songs: 
             track_id.append(song["id"])
             song_name.append(song["name"])
             external_url.append(song["external_urls"]["spotify"])
@@ -203,7 +188,7 @@ def insert_album_tracks():
             disc_number.append(song["disc_number"])
             type.append(song["type"])
             song_uri.append(song["uri"])
-            alb_id.append(song["artists"][0]["id"])
+            alb_id.append(album)
 
     tracks_dict = {
         "track_id": track_id,
@@ -244,16 +229,6 @@ def insert_album_tracks():
 
 
 def insert_track_features():
-
-    select_qry = """
-        SELECT song_uri
-        from track
-    """
-    cur.execute(select_qry)
-    song_uri = [item[0] for item in cur.fetchall()]
-
-
-
     track_id = []
     danceability = []
     energy = []
