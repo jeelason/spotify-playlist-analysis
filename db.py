@@ -1,7 +1,8 @@
 import sqlite3
 
 conn = sqlite3.connect("spotify.db")
-cursor = conn.cursor()
+cur = conn.cursor()
+
 
 def create_artist_table():
     artist_table = """ CREATE TABLE IF NOT EXISTS artist (
@@ -15,7 +16,7 @@ def create_artist_table():
                                             type varchar(50),
                                             artist_uri varchar(100)
                                         );"""
-    cursor.execute(artist_table)
+    cur.execute(artist_table)
     conn.commit()
 
     
@@ -33,7 +34,7 @@ def create_album_table():
                                     artist_id varchar(50),
                                     FOREIGN KEY (artist_id) REFERENCES artist (artist_id)
                                 );"""
-    cursor.execute(album_table)
+    cur.execute(album_table)
     conn.commit()
 
 def create_track_table():
@@ -49,7 +50,7 @@ def create_track_table():
                                         album_id varchar(50),
                                         FOREIGN KEY (album_id) REFERENCES album (album_id)
                                     );"""
-    cursor.execute(track_table)
+    cur.execute(track_table)
     conn.commit()
 
 def create_track_feature_table():
@@ -67,15 +68,6 @@ def create_track_feature_table():
                                         song_uri varchar(100),
                                         FOREIGN KEY (song_uri) REFERENCES track (song_uri)
                                     );"""
-    cursor.execute(track_feature_table)
+    cur.execute(track_feature_table)
     conn.commit()
 
-def main():
-    create_artist_table()
-    create_album_table()
-    create_track_feature_table()
-    create_track_table()
-
-
-if __name__ == '__main__':
-    main()
